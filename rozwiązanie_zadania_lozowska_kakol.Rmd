@@ -1,0 +1,143 @@
+---
+title: "Laluz - porównanie żarówek"
+author: "Beata Łozowska, Filip Kąkol"
+output: html_document
+date: "2025-01-08"
+---
+#### Autorzy:
+
+- NUMER_ALBUMU | Beata Łozowska | email@email.com
+- NUMER_ALBUMU | Filip Kąkol | kakolfilip@wp.pl
+
+---
+## Podstawowe informacje o raporcie
+
+---
+## **Dane**
+
+#### Przygotowanie danych
+Dane otrzymaliśmy w formie pliku csv. W pierwszej kolejności należało wgrać plik do projektu:
+```
+file_path <- "C:/Users/fifi1/OneDrive/Pulpit/Zarządzanie big data/R/Projekt/laluz.csv"
+
+data <- read.csv(file_path, sep = ";")
+data <- data[, -5]
+data <- na.omit(data)
+
+```
+Krótkie wytłumaczenie:
+
+- w zmiennej ```file_path``` przechowywana jest ścieżka do pliku na komputerze lokalnym użytkownika
+- ważne jest ustawienie separatora podczas odczytu pliku na średnik korzystając z argumentu ```sep = ";"```
+- dane z pliku przypisaliśmy do zmiennej ```data```.
+- ```data <- data[, -5]```usuwamy nieistotną kolumnę "manufacture_plant" w której znajdują dane dotyczące fabryk w których zostały wyprodukowane żarówki
+- ```data <- na.omit(data)``` usuwamy wiersze z pustymi wartościami w którejkolwiek komórce, żeby nie zaburzało wyników
+
+#### Podstawowe informacje
+Korzystając z poniższych funkcji pomocniczych przygotowaliśmy krótki wgląd do podstwowych informacji o danych (w komentarzach znajdują się detaliczne informacje o każdej funkcji)
+```
+dim(data) # zlicza wiersze i kolumny
+colnames(data) # listuje nagłówki kolumn
+summary(data) # podsumowanie głównych statystyk kolumn
+unique(data$product_type) # unikalne wartości w kolumnie product_type
+unique(data$sprayed) # unikalne wartości w kolumnie sprayed
+```
+
+- tabela zawiera 4 kolumny oraz 400 wierszy
+- nagłówki kolumn:
+  - time_in_hours - czas pracy żarówki podany w godzinach
+    - średnia wartość: 3736 h
+    - minimalna wartość: 1223 h
+    - maksymalna wartość: 31870 h
+    - mediana: 3348 h
+  - price_in_PLN - cena za żarówkę w złótówkach
+    - średnia wartość: 14,96 zł
+    - minimalna wartość: 9,00 zł
+    - maksymalna wartość: 20,10 h
+    - mediana: 14,53 h
+  - product_type - typ produktu
+    - unikalne wartości: regular bulb, DoubleBulb, CoatItYourself
+  - sprayed - czy na żarówce została położona dodatkowa warstwa ochronna
+    - unikalne wartości: none oraz CoatItYourself
+
+
+## **Badanie**
+
+---
+
+### **Czy rzeczywiście żarówki o podwójnej bańce mają dłuższy średni czas życia niż żarówki o pojedynczej bańce?**
+
+Do odpowiedzi na powyższe pytanie zastosowaliśmy test t-Studenta, ponieważ jest on idealnym narzędziem do porównywania średnich dwóch grup.Test t-Studenta jest  kluczowym narzędziem do zweryfikowania, czy różnica w średnim czasie życia żarówek jest wystarczająco duża, by można ją uznać za istotną, a nie wynikającą jedynie z losowych odchyleń. 
+
+
+Do testu użyliśmy jedynie danych dotyczących żarówek, na których nie został użyty dodatkowy spray, aby wyniki nie były zakłamane. Oto kroki, które wykonaliśmy:
+
+1. W pierwszej kolejności należało wyfiltrować odpowiednie dane do zmiennych:
+
+```
+# Ze zbioru data filtrujemy jedynie dane dotyczące zwykłych żarówek bez spraya
+regular_bulb__without_spray_filtered_data <- subset(data, product_type == "regular bulb" & sprayed == "none")
+
+# Ze zbioru data filtrujemy jedynie dane dotyczące podwójnych żarówek bez spraya
+doubled_bulb_without_spray_filtered_data <- subset(data, product_type == "DoubleBulb" & sprayed == "none")
+```
+
+2. Po drugie należało wykazać czy wariancje są równe czy różne, aby móc taką informację przekazać do testu t-Studenta. Do obliczenia tej wartości zastosowaliśmy test F, w którym użyliśmy wyżej zadeklarowanych zmiennych:
+
+```
+f_test <- var.test(
+  regular_bulb__without_spray_filtered_data$time_in_hours,
+  doubled_bulb_without_spray_filtered_data$time_in_hours
+)
+```
+Do decyzji, czy wariancję są równe użyliśmy wskaźnika "p-value". W naszym przypadku znacznik wyniósł **p-value < 2.2e-16** co oznacza, że **różnica wariancji między grupami jest statystycznie istotna**. (Jeśli p-value < 0.05 - wariancje są różne; Jeśli p-value ≥ 0.05 - wariancje są równe)
+
+3. Osatnim krokiem jest wykonanie testu:
+
+```
+t_test_result <- t.test(
+  regular_bulb__without_spray_filtered_data$time_in_hours,
+  doubled_bulb_without_spray_filtered_data$time_in_hours,
+  var.equal = FALSE,  # ustawiamy wartość na FALSE ponieważ w teście F dowiedliśmy że wariancje nie są równe
+)
+```
+
+#### Opis testu
+Porównano średni czas życia dwóch typów żarówek:
+
+- **Grupa 1 (x):** Żarówki o pojedynczej bańce (`regular_bulb__without_spray_filtered_data$time_in_hours`).
+- **Grupa 2 (y):** Żarówki o podwójnej bańce (`doubled_bulb_without_spray_filtered_data$time_in_hours`).
+
+#### Wyniki testu
+- **Statystyka t:** `t = -4.8011`
+- **Stopnie swobody:** `df = 104.32`
+- **P-wartość:** `p-value = 5.292e-06`
+- **Hipoteza alternatywna:** Różnica między średnimi jest różna od 0.
+- **Przedział ufności (95%):** Od `-2221.34` do `-922.76`.
+- **Średnia grupy 1 (x):** `2893.60`
+- **Średnia grupy 2 (y):** `4465.65`
+
+#### Interpretacja
+1. **Istotność statystyczna:**
+   - P-wartość wynosi `5.292e-06`, co jest znacznie mniejsze od typowego poziomu istotności (np. 0.05). Odrzucamy hipotezę zerową o braku różnicy między średnimi czasami życia żarówek.
+   - Wyniki są statystycznie istotne.
+
+2. **Przedział ufności:**
+   - Różnica między średnimi czasami życia żarówek wynosi od `-2221.34` do `-922.76` godzin. Przedział nie obejmuje 0, co potwierdza istotność różnicy.
+
+3. **Kierunek różnicy:**
+   - Średni czas życia żarówek o podwójnej bańce (`4465.65` godzin) jest istotnie dłuższy niż żarówek o pojedynczej bańce (`2893.60` godzin).
+
+#### Wniosek
+Żarówki o podwójnej bańce mają statystycznie istotnie dłuższy średni czas życia w porównaniu z żarówkami o pojedynczej bańce. Różnica ta wynosi średnio około `1572` godzin.
+
+---
+
+### Czy rzeczywiście spray przedłuża średni czas życia żarówki? Obu typów?
+
+
+### Czy używanie którejś z tych alternatyw do zwykłych żarówek o pojedynczej bańce ma sens ekonomiczny?
+
+
+### Propozycja zmian
+
