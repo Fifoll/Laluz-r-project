@@ -67,6 +67,8 @@ unique(data$sprayed) # unikalne wartości w kolumnie sprayed
 
 ### **Czy rzeczywiście żarówki o podwójnej bańce mają dłuższy średni czas życia niż żarówki o pojedynczej bańce?**
 
+Aby wybrać odpowiedni test statystyczny do odpowiedzi na ww. pytanie należało sprawdzić czy próby  
+
 Do odpowiedzi na powyższe pytanie zastosowaliśmy test t-Studenta, ponieważ jest on idealnym narzędziem do porównywania średnich dwóch grup.Test t-Studenta jest  kluczowym narzędziem do zweryfikowania, czy różnica w średnim czasie życia żarówek jest wystarczająco duża, by można ją uznać za istotną, a nie wynikającą jedynie z losowych odchyleń. 
 
 
