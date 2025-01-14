@@ -204,7 +204,6 @@ print(double_bulb_with_spray_year_count)
 # dodać wykres słupkowy do danych
 
 
-
 ##  Policz, na jak długo starczy w tym modelowym gospodarstwie domowym jedno opakowanie sprayu.
 # Zakłądamy że mamy 10 żarówek w gospodarstwie i żarówki średnio świecą się 4h dziennie, co ooznacza że dziennie musimy użyć sprayu 40 razy
 bulb_count_in_house <- 20;

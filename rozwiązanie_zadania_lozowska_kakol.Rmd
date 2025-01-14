@@ -17,25 +17,28 @@ date: "2025-01-08"
 
 #### Przygotowanie danych
 Dane otrzymaliśmy w formie pliku csv. W pierwszej kolejności należało wgrać plik do projektu:
-```
-file_path <- "C:/Users/fifi1/OneDrive/Pulpit/Zarządzanie big data/R/Projekt/laluz.csv"
+```{r}
+
+file_path <- "https://mimuw.edu.pl/~szym/laluz.csv"
 
 data <- read.csv(file_path, sep = ";")
 data <- data[, -5]
 data <- na.omit(data)
+head(data)
 
 ```
 Krótkie wytłumaczenie:
 
-- w zmiennej ```file_path``` przechowywana jest ścieżka do pliku na komputerze lokalnym użytkownika
+- w zmiennej ```file_path``` przechowywana jest ścieżka do pliku
 - ważne jest ustawienie separatora podczas odczytu pliku na średnik korzystając z argumentu ```sep = ";"```
 - dane z pliku przypisaliśmy do zmiennej ```data```.
 - ```data <- data[, -5]```usuwamy nieistotną kolumnę "manufacture_plant" w której znajdują dane dotyczące fabryk w których zostały wyprodukowane żarówki
-- ```data <- na.omit(data)``` usuwamy wiersze z pustymi wartościami w którejkolwiek komórce, żeby nie zaburzało wyników
+- ```data <- na.omit(data)``` - usuwamy wszystkie puste wartości z danych
 
-#### Podstawowe informacje
-Korzystając z poniższych funkcji pomocniczych przygotowaliśmy krótki wgląd do podstwowych informacji o danych (w komentarzach znajdują się detaliczne informacje o każdej funkcji)
-```
+#### Charakterystyka danych
+Korzystając z poniższych funkcji pomocniczych przygotowaliśmy krótki wgląd do podstawowych informacji o danych (w komentarzach znajdują się detaliczne informacje o każdej funkcji)
+```{r}
+
 dim(data) # zlicza wiersze i kolumny
 colnames(data) # listuje nagłówki kolumn
 summary(data) # podsumowanie głównych statystyk kolumn
@@ -60,14 +63,163 @@ unique(data$sprayed) # unikalne wartości w kolumnie sprayed
   - sprayed - czy na żarówce została położona dodatkowa warstwa ochronna
     - unikalne wartości: none oraz CoatItYourself
 
+Poniższy wykres przedstawia dane wykorzystane do przeprowadzenia badania:
+
+```{r}
+
+bulb_labels <- c("Żarówka podwójna", "Żarówka pojedyncza")
+bulb_color <- c("#63C13270", "#FF000070")
+
+
+if (!requireNamespace("ggplot2")) {
+  install.packages("ggplot2")
+}
+
+library(ggplot2) #Wczytanie pakietu ggplot2
+
+ggplot(data, aes(x = time_in_hours, y = price_in_PLN, color = product_type, shape = product_type)) +
+  geom_point(size = 4, position = position_jitter(width = 0.3, height = 0.3)) +  # Dodanie scatter
+  scale_color_manual(values = bulb_color, name = "Typ żarówki", labels = bulb_labels) +
+  scale_shape_manual(values = c("DoubleBulb" = 17, "regular bulb" = 17), name = "Typ żarówki", labels = bulb_labels) +
+  labs(
+    x = "Czas w godzinach",
+    y = "Cena w złotówkach",
+    title = "Dane uzyskane w badaniu"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20), hjust = 0.5),
+    axis.title.x = element_text(margin = margin(t = 20)),
+    axis.title.y = element_text(margin = margin(r = 20)),
+  )
+```
+
+#### Analiza danych odstających
+
+Do identyfikacji wartości odstających wykorzystano wskaźnik z-score, który określa, jak bardzo dana wartość odbiega od średniej, wyrażając tę różnicę w jednostkach odchylenia standardowego. Wartości uznano za odstające, jeśli ich z-score przekracza 3 jednostki w górę lub w dół od zera. Użyte funkcje operują na ramce danych „dane” i zwracają indeksy wierszy, które zawierają takie odstające wartości.
+
+```{r}
+
+z_score_time_in_hours <- scale(data$time_in_hours)
+outlier_time_in_hours <- which(abs(z_score_time_in_hours) > 3)
+
+z_score_price_in_pln <- scale(data$price_in_PLN)
+outlier_price_in_pln <- which(abs(z_score_price_in_pln) > 3)
+
+print(outlier_time_in_hours) # zwrócono 288 373
+print(outlier_price_in_pln) # zwrócono pusty wynik
+```
+Przyjęto, że wartości odstające znajdują się w wierszach: 288 (31869.6 h), 373 (10199.5 h)
+
+
+Są to wartości znacząco odbiegające od normy czasu działania żarówek, więc podjęlismy decyzję o usunięciu tych danych.
+
+Podjęto decyzję o usunięciu danych, gdyż zaburzają wyniki analizy:
+
+```{r}
+outliner_data <- c(outlier_time_in_hours, outlier_price_in_pln)
+data <- subset(data, !(1:nrow(data) %in% outliner_data))
+```
+
 
 ## **Badanie**
 
----
+### **Test 1 - Czy rzeczywiście żarówki o podwójnej bańce mają dłuższy średni czas życia niż żarówki o pojedynczej bańce?**
 
-### **Czy rzeczywiście żarówki o podwójnej bańce mają dłuższy średni czas życia niż żarówki o pojedynczej bańce?**
+Do przeprowadzonego testu wykorzystaliśmy jedynie dane dotyczące żarówek na których nie użyto dodatkowego spraya, żeby wynik był bardziej wiarygodny.
 
-Aby wybrać odpowiedni test statystyczny do odpowiedzi na ww. pytanie należało sprawdzić czy próby  
+#### Hipotezy
+
+- hipoteza zerowa - Żarówki o podwójnej bańce mają dłuższy średni czas życia niż żarówki o pojedynczej bańce.
+- hipoteza alternatywna - Żarówki o podwójnej bańce nie mają dłuższego średniego czasu życia niż żarówki o pojedynczej bańce.
+
+#### Wykonanie
+
+Aby wybrać odpowiedni test statystyczny do odpowiedzi na ww. pytanie należało sprawdzić czy próby danych posiadają rozkład normalny, aby to sprawdzić użyliśmy testu Shapiro-Wilka:
+```{r}
+# W pierszej kolejności należało wyfiltrować odpowiednio dane na potrzeby testu
+# Pierwsza zmienna przechowuje dane żarówek regularnych bez użytego spraya
+# Druga zmienna przechowuje dane żarówek double bez użytego spraya
+
+regular_bulb_without_spray_filtered_data <- subset(data, product_type == "regular bulb" & sprayed == "none")
+doubled_bulb_without_spray_filtered_data <- subset(data, product_type == "DoubleBulb" & sprayed == "none")
+
+# Następnie wykonaliśmy testy
+shapiro_test_regular_bulb <- shapiro.test(regular_bulb_without_spray_filtered_data$time_in_hours)
+shapiro_test_doubled_bulb <- shapiro.test(doubled_bulb_without_spray_filtered_data$time_in_hours)
+
+print(shapiro_test_regular_bulb)
+print(shapiro_test_doubled_bulb)
+```
+Zgodnie z otrzymanymi wartościami można stwierdzić, że dane w zmiennej ```regular_bulb__without_spray_filtered_data$time_in_hours``` można uznać za zgodne z rozkładem normalnym, a dane w zmiennej ```doubled_bulb__without_spray_filtered_data$time_in_hours``` nie można uznać za zgodnych z rozkładem normalnym - w związku z tym do dalszej analizy należy rozważyć metody niewymagające normalności. W naszym przypadku będzie to test U Manna-Whitneya.
+
+```{r}
+mann_whitney_result <- wilcox.test(regular_bulb_without_spray_filtered_data$time_in_hours, 
+                                   doubled_bulb_without_spray_filtered_data$time_in_hours)
+
+# Wyświetlanie wyników testu
+print(mann_whitney_result)
+```
+
+Wyniki testu:
+
+Bardzo niska wartość p (p-value = 0.00000001178) wskazuje na to, że różnica między grupami jest statystycznie istotna. Odrzucamy hipotezę zerową, która zakłada, że mediany obu grup są takie same.
+
+Aby sprawdzić, która z grup danych posiada większą średnią wykorzystaliśmy poniższy kod:
+
+```{r}
+regular_bulb_without_spray_mean_time <- mean(regular_bulb_without_spray_filtered_data$time_in_hours, na.rm = TRUE) #na.rm = TRUE - usuwa puste wartości
+doubled_bulb_without_spray_mean_time <- mean(doubled_bulb_without_spray_filtered_data$time_in_hours, na.rm = TRUE)
+print(regular_bulb_without_spray_mean_time)
+print(doubled_bulb_without_spray_mean_time)
+
+```
+Poniższy wykres, przedstawia średni czas działania żarówek bez sprayu:
+```{r}
+mean_times <- c(doubled_bulb_without_spray_mean_time, regular_bulb_without_spray_mean_time)
+
+# Tworzenie wykresu słupkowego
+bar_positions <- barplot(
+  mean_times,
+  names.arg = bulb_labels,
+  col = bulb_color,
+  main = "Średni czas działania żarówek (bez sprayu)",
+  xlab = "Typ żarówki",
+  ylab = "Średni czas działania (godziny)",
+  xlim = c(0, 5), # Ustawienie zakresu os X
+  ylim = c(0, 5000), # Ustawienie zakresu osi Y do 5000
+  space = 1,  # Zmniejszenie szerokości słupków (odstęp pomiędzy słupkami)
+  cex.names = 0.8
+)
+
+# Dodanie punktów dla regular_bulb
+points(
+  jitter(rep(bar_positions[1], length(doubled_bulb_without_spray_filtered_data$time_in_hour))), # Jitter dla losowego rozrzutu
+  doubled_bulb_without_spray_filtered_data$time_in_hour,
+  col = "red",
+  pch = 16
+)
+
+# Dodanie punktów dla doubled_bulb
+points(
+  jitter(rep(bar_positions[2], length(regular_bulb_without_spray_filtered_data$time_in_hour))), # Jitter dla losowego rozrzutu
+  regular_bulb_without_spray_filtered_data$time_in_hour,
+  col = "blue",
+  pch = 16
+)
+```
+
+Wniosek:
+Żarówki o podwójnej bańce mają dłuższy średni czas działania niż żarówki o pojedynczej bańce.
+
+
+
+
+
+
+
+
+
 
 Do odpowiedzi na powyższe pytanie zastosowaliśmy test t-Studenta, ponieważ jest on idealnym narzędziem do porównywania średnich dwóch grup.Test t-Studenta jest  kluczowym narzędziem do zweryfikowania, czy różnica w średnim czasie życia żarówek jest wystarczająco duża, by można ją uznać za istotną, a nie wynikającą jedynie z losowych odchyleń. 
 
