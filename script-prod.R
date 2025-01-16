@@ -4,6 +4,7 @@ data <- read.csv(file_path, sep = ";")
 data <- data[, -5]
 data <- na.omit(data)
 head(data)
+#View(data)
 
 
 dim(data) # zlicza wiersze i kolumny
@@ -11,7 +12,7 @@ colnames(data) # listuje nagłówki kolumn
 summary(data) # podsumowanie głównych statystyk kolumn
 unique(data$product_type) # unikalne wartości w kolumnie product_type
 unique(data$sprayed) # unikalne wartości w kolumnie sprayed
-View(data)
+#View(data)
 
 bulb_labels <- c("Żarówka podwójna", "Żarówka pojedyncza")
 bulb_color <- c("#63C13270", "#FF000070")
@@ -115,4 +116,106 @@ points(
   col = "blue",
   pch = 16
 )
+
+
+
+regular_bulb_with_spray_filtered_data <- subset(data, product_type == "regular bulb" & sprayed == "CoatItYourself")
+doubled_bulb_with_spray_filtered_data <- subset(data, product_type == "DoubleBulb" & sprayed == "CoatItYourself")
+
+
+# Następnie wykonaliśmy testy
+shapiro_test_regular_bulb_with_spray <- shapiro.test(regular_bulb_with_spray_filtered_data$time_in_hours)
+shapiro_test_doubled_bulb_with_spray <- shapiro.test(doubled_bulb_with_spray_filtered_data$time_in_hours)
+
+print(shapiro_test_regular_bulb_with_spray)
+print(shapiro_test_regular_bulb)
+
+print(shapiro_test_doubled_bulb_with_spray)
+print(shapiro_test_doubled_bulb)
+
+wilcox_regular_bulb <- wilcox.test(regular_bulb_without_spray_filtered_data$time_in_hours, regular_bulb_with_spray_filtered_data$time_in_hours)
+print(wilcox_regular_bulb)
+
+wilcox_doubled_bulb <- wilcox.test(doubled_bulb_without_spray_filtered_data$time_in_hours, doubled_bulb_with_spray_filtered_data$time_in_hours)
+print(wilcox_doubled_bulb)
+
+
+# Cena za jeden psik preparatm
+
+bulbs_with_spray <- subset(data, sprayed == "CoatItYourself")
+
+total_time_spray <- sum(bulbs_with_spray$time_in_hours, na.rm = TRUE)
+
+spray_price <- 100; # cena sprayu
+
+one_shot_spray_price <- spray_price / total_time_spray;
+
+print(one_shot_spray_price)
+
+
+
+
+
+# Cena za godzinę użytkowania 
+
+# regular bulb without spray
+mean_time_regular_bulb_without_spray <- mean(regular_bulb_without_spray_filtered_data$time_in_hours)
+mean_price_regular_bulb_without_spray <- mean(regular_bulb_without_spray_filtered_data$price_in_PLN)
+price_per_hour_regular_bulb_without_spray <- mean_price_regular_bulb_without_spray / mean_time_regular_bulb_without_spray;
+print(price_per_hour_regular_bulb_without_spray)
+# ~34,4 gr.
+
+# regular bulb with spray
+mean_time_regular_bulb_with_spray <- mean(regular_bulb_with_spray_filtered_data$time_in_hours)
+mean_price_regular_bulb_with_spray <- mean(regular_bulb_with_spray_filtered_data$price_in_PLN)
+price_per_hour_regular_bulb_with_spray <- mean_price_regular_bulb_with_spray / mean_time_regular_bulb_with_spray + one_shot_spray_price;
+print(price_per_hour_regular_bulb_with_spray)
+# ~ 31,7gr
+
+# double bulb without spray
+mean_time_doubled_bulb_without_spray <- mean(doubled_bulb_without_spray_filtered_data$time_in_hours)
+mean_price_doubled_bulb_without_spray <- mean(doubled_bulb_without_spray_filtered_data$price_in_PLN)
+price_per_hour_doubled_bulb_without_spray <- mean_price_doubled_bulb_without_spray / mean_time_doubled_bulb_without_spray;
+print(price_per_hour_doubled_bulb_without_spray)
+# ~47,7gr
+
+# double bulb with spray
+mean_time_doubled_bulb_with_spray <- mean(doubled_bulb_with_spray_filtered_data$time_in_hours)
+mean_price_doubled_bulb_with_spray <- mean(doubled_bulb_with_spray_filtered_data$price_in_PLN)
+price_per_hour_doubled_bulb_with_spray <- mean_price_doubled_bulb_with_spray / mean_time_doubled_bulb_with_spray + one_shot_spray_price;
+print(price_per_hour_doubled_bulb_with_spray)
+# ~48,1
+
+
+
+
+
+
+# Średni czas działania żarówki w latach
+
+light_hours_per_day <- 4;
+day_number_in_year <- 365;
+# Regularna bez spraya 
+mean_time_regular_bulb_without_spray <- mean(regular_bulb_without_spray_filtered_data$time_in_hours);
+regular_bulb_without_spray_day_count <- mean_time_regular_bulb_without_spray / light_hours_per_day;
+regular_bulb_without_spray_year_count <- regular_bulb_without_spray_day_count / day_number_in_year;
+print(regular_bulb_without_spray_year_count)
+
+# Regularna ze sprayem 
+mean_time_regular_bulb_with_spray <- mean(regular_bulb_with_spray_filtered_data$time_in_hours);
+regular_bulb_with_spray_day_count <- mean_time_regular_bulb_with_spray / light_hours_per_day;
+regular_bulb_with_spray_year_count <- regular_bulb_with_spray_day_count / day_number_in_year;
+print(regular_bulb_with_spray_year_count)
+
+# double bez spraya 
+mean_time_doubled_bulb_without_spray <- mean(doubled_bulb_without_spray_filtered_data$time_in_hours);
+doubled_bulb_without_spray_day_count <- mean_time_doubled_bulb_without_spray / light_hours_per_day;
+doubled_bulb_without_spray_year_count <- doubled_bulb_without_spray_day_count / day_number_in_year;
+print(doubled_bulb_without_spray_year_count)
+
+# double ze sprayem 
+mean_time_doubled_bulb_with_spray <- mean(doubled_bulb_with_spray_filtered_data$time_in_hours);
+doubled_bulb_with_spray_day_count <- mean_time_doubled_bulb_with_spray / light_hours_per_day;
+doubled_bulb_with_spray_year_count <- doubled_bulb_with_spray_day_count / day_number_in_year;
+print(doubled_bulb_with_spray_year_count)
 
