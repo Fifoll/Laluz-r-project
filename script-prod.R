@@ -219,3 +219,13 @@ doubled_bulb_with_spray_day_count <- mean_time_doubled_bulb_with_spray / light_h
 doubled_bulb_with_spray_year_count <- doubled_bulb_with_spray_day_count / day_number_in_year;
 print(doubled_bulb_with_spray_year_count)
 
+
+# na ile lat starcza spray
+bulb_count_in_house <- 10;
+bulb_light_per_day <- 4;
+spray_count_day <- total_time_spray / bulb_light_per_day / bulb_count_in_house;
+spray_count_years <- total_time_spray / bulb_light_per_day / bulb_count_in_house / 365;
+
+print(spray_count_day)
+print(spray_count_years)
+

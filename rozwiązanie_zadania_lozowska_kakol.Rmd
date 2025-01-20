@@ -6,8 +6,8 @@ date: "2025-01-08"
 ---
 #### Autorzy:
 
-- NUMER_ALBUMU | Beata Łozowska | email@email.com
-- NUMER_ALBUMU | Filip Kąkol | kakolfilip@wp.pl
+- 444808 | Beata Łozowska | b.lozowska3@student.uw.edu.pl
+- 413322 | Filip Kąkol | f.kakol@student.uw.edu.pl
 
 ---
 ## Podstawowe informacje o raporcie
@@ -27,13 +27,13 @@ data <- na.omit(data)
 head(data)
 
 ```
-Krótkie wytłumaczenie:
+#### Krótkie wytłumaczenie:
 
 - w zmiennej ```file_path``` przechowywana jest ścieżka do pliku
 - ważne jest ustawienie separatora podczas odczytu pliku na średnik korzystając z argumentu ```sep = ";"```
-- dane z pliku przypisaliśmy do zmiennej ```data```.
+- dane z pliku przypisaliśmy do zmiennej ```data```
 - ```data <- data[, -5]```usuwamy nieistotną kolumnę "manufacture_plant" w której znajdują dane dotyczące fabryk w których zostały wyprodukowane żarówki
-- ```data <- na.omit(data)``` - usuwamy wszystkie puste wartości z danych
+- ```data <- na.omit(data)``` - usuwamy wszystkie wiersze w których są puste wartości
 
 #### Charakterystyka danych
 Korzystając z poniższych funkcji pomocniczych przygotowaliśmy krótki wgląd do podstawowych informacji o danych (w komentarzach znajdują się detaliczne informacje o każdej funkcji)
@@ -63,7 +63,7 @@ unique(data$sprayed) # unikalne wartości w kolumnie sprayed
   - sprayed - czy na żarówce została położona dodatkowa warstwa ochronna
     - unikalne wartości: none oraz CoatItYourself
 
-Poniższy wykres przedstawia dane wykorzystane do przeprowadzenia badania:
+#### Poniższy wykres przedstawia dane wykorzystane do przeprowadzenia badania:
 
 ```{r}
 
@@ -130,8 +130,8 @@ Do przeprowadzonego testu wykorzystaliśmy jedynie dane dotyczące żarówek na 
 
 #### Hipotezy
 
-- hipoteza zerowa - Żarówki o podwójnej bańce nie mają dłuższego średniego czasu życia niż żarówki o pojedynczej bańce.
-- hipoteza alternatywna - Żarówki o podwójnej bańce mają dłuższy średni czas życia niż żarówki o pojedynczej bańce.
+- **hipoteza zerowa - Żarówki o podwójnej bańce nie mają dłuższego średniego czasu życia niż żarówki o pojedynczej bańce.**
+- **hipoteza alternatywna - Żarówki o podwójnej bańce mają dłuższy średni czas życia niż żarówki o pojedynczej bańce.**
 
 #### Wykonanie
 
@@ -161,7 +161,7 @@ wilcox_regular_bulb_without_spray <- wilcox.test(regular_bulb_without_spray_filt
 print(wilcox_regular_bulb_without_spray)
 ```
 
-Wyniki testu:
+#### Wyniki testu:
 
 Bardzo niska wartość p-value wskazuje, że odrzucamy hipotezę zerową i wybieramy hipotezę alternatywną, która mówi że żarówki o podwójnej bańce mają dłuższy średni czas życia niż żarówki o pojedynczej bańce.
 
@@ -175,7 +175,7 @@ print(regular_bulb_without_spray_mean_time)
 print(doubled_bulb_without_spray_mean_time)
 
 ```
-Poniższy wykres, przedstawia średni czas działania żarówek bez sprayu:
+#### Poniższy wykres, przedstawia średni czas działania żarówek bez sprayu:
 ```{r}
 mean_times <- c(doubled_bulb_without_spray_mean_time, regular_bulb_without_spray_mean_time)
 
@@ -185,7 +185,7 @@ bar_positions <- barplot(
   names.arg = bulb_labels,
   col = bulb_color,
   main = "Średni czas działania żarówek (bez sprayu)",
-  xlab = "Typ żarówki",
+  xlab = "",
   ylab = "Średni czas działania (godziny)",
   xlim = c(0, 5), # Ustawienie zakresu os X
   ylim = c(0, 5000), # Ustawienie zakresu osi Y do 5000
@@ -210,8 +210,8 @@ points(
 )
 ```
 
-Wniosek:
-Żarówki o podwójnej bańce mają dłuższy średni czas działania niż żarówki o pojedynczej bańce.
+#### **Wniosek:**
+**Żarówki o podwójnej bańce mają dłuższy średni czas działania niż żarówki o pojedynczej bańce.**
 
 ### **Test 2 - Czy rzeczywiście spray przedłuża średni czas życia żarówki? Obu typów?**
 
@@ -234,8 +234,8 @@ Ponieważ dane nie mają rozkładu normalnego (tj. p-value grup: żarówki z poj
 #### Żarówka z pojedynczą bańką
 
 ##### Hipotezy:
-- hipoteza zerowa - Spray nie ma wpływu na średni czas życia żarówki z pojedynczą bańką
-- hipoteza alternatywna -  Spray ma wpływ na średni czas życia żarówki z pojedynczą bańką
+- **hipoteza zerowa - Spray nie ma wpływu na średni czas życia żarówki z pojedynczą bańką**
+- **hipoteza alternatywna -  Spray ma wpływ na średni czas życia żarówki z pojedynczą bańką**
 
 ```{r}
 wilcox_regular_bulb <- wilcox.test(regular_bulb_without_spray_filtered_data$time_in_hours, regular_bulb_with_spray_filtered_data$time_in_hours)
@@ -247,8 +247,8 @@ W związku z tym, że p-value jest mniejsze niż 0.05 to przyjmujemy hipotezę a
 #### Żarówka z podwójną bańką
 
 ##### Hipotezy:
-- hipoteza zerowa - Spray nie ma wpływu na średni czas życia żarówki z podwójną bańką
-- hipoteza alternatywna -  Spray ma wpływ na średni czas życia żarówki z podwójną bańką
+- **hipoteza zerowa - Spray nie ma wpływu na średni czas życia żarówki z podwójną bańką**
+- **hipoteza alternatywna -  Spray ma wpływ na średni czas życia żarówki z podwójną bańką**
 
 ```{r}
 wilcox_doubled_bulb <- wilcox.test(doubled_bulb_without_spray_filtered_data$time_in_hours, doubled_bulb_with_spray_filtered_data$time_in_hours)
@@ -261,7 +261,7 @@ W związku z tym, że p-value jest większe niż 0.05 to przyjmujemy hipotezę z
 
 Aby odpowiedzieć na to pytanie obliczyliśmy następujące wartości:
 
-#### Koszt jednego psiku 
+#### Koszt jednego psiknięcia
 ```{r}
 bulbs_with_spray <- subset(data, sprayed == "CoatItYourself")
 
@@ -273,10 +273,15 @@ one_shot_spray_price <- spray_price / total_time_spray;
 
 print(one_shot_spray_price)
 ```
-TODO - zamienić na zł (* 100)
-Koszt jednorazowego użycia sprayu to ```v```
+
+**Koszt jednorazowego użycia sprayu to 0,013 zł**
 
 #### Koszt jednej godziny pracy żarówki
+
+Aby obliczyć koszt jednej godziny pracy żarówki należy:
+- obliczyć średni czas działania danej żarówki
+- obliczyć średnią kwotę jaką trzeba zapłacić za daną żarówkę
+- podzielić średnią kwotę przez średni czas
 
 
 ##### Żarówka z pojedynczą bańką bez sprayu
@@ -288,7 +293,9 @@ price_per_hour_regular_bulb_without_spray <- mean_price_regular_bulb_without_spr
 print(price_per_hour_regular_bulb_without_spray)
 ```
 
-##### Żarówka z pojedynczą z użyciem sprayu
+**Koszt jednej godziny pracy żarówki z pojedynczą bańką bez sprayu wynosi 0,344zł**
+
+##### Żarówka z pojedynczą bańką z użyciem sprayu
 
 ```{r}
 mean_time_regular_bulb_with_spray <- mean(regular_bulb_with_spray_filtered_data$time_in_hours)
@@ -296,6 +303,7 @@ mean_price_regular_bulb_with_spray <- mean(regular_bulb_with_spray_filtered_data
 price_per_hour_regular_bulb_with_spray <- mean_price_regular_bulb_with_spray / mean_time_regular_bulb_with_spray + one_shot_spray_price;
 print(price_per_hour_regular_bulb_with_spray)
 ```
+**Koszt jednej godziny pracy żarówki z pojedynczą bańką z użyciem sprayu wynosi 0,317zł**
 
 ##### Żarówka z podwójną bańką bez sprayu
 
@@ -305,6 +313,7 @@ mean_price_doubled_bulb_without_spray <- mean(doubled_bulb_without_spray_filtere
 price_per_hour_doubled_bulb_without_spray <- mean_price_doubled_bulb_without_spray / mean_time_doubled_bulb_without_spray;
 print(price_per_hour_doubled_bulb_without_spray)
 ```
+**Koszt jednej godziny pracy żarówki z podwójną bańką bez sprayu wynosi 0,477zł**
 
 ##### Żarówka z podwójną bańką z użyciem sprayu
 
@@ -314,8 +323,60 @@ mean_price_doubled_bulb_with_spray <- mean(doubled_bulb_with_spray_filtered_data
 price_per_hour_doubled_bulb_with_spray <- mean_price_doubled_bulb_with_spray / mean_time_doubled_bulb_with_spray + one_shot_spray_price;
 print(price_per_hour_doubled_bulb_with_spray)
 ```
+**Koszt jednej godziny pracy żarówki z podwójną bańką z użyciem sprayu wynosi 0,482zł**
+#### Wykres - Koszt użytkowania żarówek ( grosze za godzinę )
+````{r}
+# Dane do wykresu
+bulb_types <- c("Pojedyńcza żarówka bez sprayu", "Pojedyńcza żarówka ze sprayem", "Podwójna żarówka bez sprayu", "Podwójna żarówka ze sprayem")
+
+price_per_hour <- c(
+  price_per_hour_regular_bulb_without_spray * 100, # Zamiana na grosze
+  price_per_hour_regular_bulb_with_spray * 100,
+  price_per_hour_doubled_bulb_without_spray * 100,
+  price_per_hour_doubled_bulb_with_spray * 100
+)
+
+bar_colors <- c("#63C132", "#63C13270", "#FF0000", "#FF000070")
+
+# Tworzenie wykresu słupkowego
+bar_positions <- barplot(
+  price_per_hour,
+  names.arg = bulb_types,
+  col = bar_colors,
+  main = "Koszt użytkowania żarówek (złotówki za godzinę)",
+  xlab = "",
+  ylab = "Cena za godzinę w zł",
+  ylim = c(0, ceiling(max(price_per_hour) / 10) * 10 / 10), # Górna granica osi Y dopasowana do odstępów 0.1
+  cex.names = 0.5,
+  las = 1, # Obrót etykiet na osi X
+  font.lab = 3 # Pochylona czcionka
+)
+
+# Dodanie wartości na słupkach (zaokrąglenie do  miejsc po przecinku)
+text(
+  x = bar_positions,
+  y = price_per_hour,
+  labels = round(price_per_hour, 3 ), # Wyświetlenie wartości z 2 miejscami po przecinku
+  pos = 3, # Pozycja nad słupkami
+  cex = 0.8, # Rozmiar tekstu
+  col = "black"
+)
+````
+
+Pojedyncza żarówka bez sprayu ma najniższy koszt użytkowania na godzinę (0.317 groszy), co czyni ją najbardziej ekonomiczną opcją pod względem kosztów operacyjnych.
+
+Pojedyncza żarówka ze sprayem jest niewiele droższa (0.344 groszy), co sugeruje, że różnica kosztów w użytkowaniu między tymi dwoma opcjami jest minimalna.
+
+Podwójne żarówki, zarówno ze sprayem (0.482 groszy), jak i bez sprayu (0.477 groszy), mają znacząco wyższy koszt użytkowania na godzinę w porównaniu do pojedynczych żarówek. Różnica ta wynosi około 50% w stosunku do najtańszej opcji.
 
 #### Długość życia żarówki w latach
+
+Aby obliczyć długość życia żarówki w latach należy:
+- obliczyć średni czas działania danej żarówki
+- podzielić średni czas działania żarówki przez liczbę godzin dziennego świecenia, aby uzyskać liczbę dni przez które świeci żarówkia
+- podzielić wyżej wyliczoną liczbę dni przez liczbę dni w roku, aby uzyskać ten czas w latach
+
+Założyliśmy, że typowy użytkowik korzysta z żarówki 4h dziennie przez 365 dni w roku. Przypisaliśmy te wartości do poniższych zmiennych:
 
 ```{r}
 light_hours_per_day <- 4; # zakładamy że żarówka działa przez 4 godziny dziennie
@@ -330,6 +391,7 @@ regular_bulb_without_spray_day_count <- mean_time_regular_bulb_without_spray / l
 regular_bulb_without_spray_year_count <- regular_bulb_without_spray_day_count / day_number_in_year;
 print(regular_bulb_without_spray_year_count)
 ```
+**Żywotnośc żarówki z pojedynczą bańką bez sprayu wynosi 1,98 lat**
 
 ##### Żarówka z pojedynczą bańką z użyciem sprayu
 
@@ -339,6 +401,7 @@ regular_bulb_with_spray_day_count <- mean_time_regular_bulb_with_spray / light_h
 regular_bulb_with_spray_year_count <- regular_bulb_with_spray_day_count / day_number_in_year;
 print(regular_bulb_with_spray_year_count)
 ```
+**Żywotnośc żarówki z pojedynczą bańką z użyciem sprayu wynosi 2,23 lata**
 
 ##### Żarówka z podwójną bańką bez sprayu
 
@@ -348,6 +411,7 @@ doubled_bulb_without_spray_day_count <- mean_time_doubled_bulb_without_spray / l
 doubled_bulb_without_spray_year_count <- doubled_bulb_without_spray_day_count / day_number_in_year;
 print(doubled_bulb_without_spray_year_count)
 ```
+**Żywotnośc żarówki z podwójną bańką bez sprayu wynosi 2,87 lat**
 
 ##### Żarówka z podwójną bańką z użyciem sprayu
 
@@ -357,8 +421,100 @@ doubled_bulb_with_spray_day_count <- mean_time_doubled_bulb_with_spray / light_h
 doubled_bulb_with_spray_year_count <- doubled_bulb_with_spray_day_count / day_number_in_year;
 print(doubled_bulb_with_spray_year_count)
 ```
+**Żywotnośc żarówki z podwójną bańką z użyciem sprayu wynosi 2,92 lata**
 
+#### Wykres - Długość życia żarówki w latach 
 
+```{r}
 
-### Propozycja zmian
+# Wartości średniej długości życia w latach
+life_years <- c(
+  regular_bulb_without_spray_year_count,  # Żarówka pojedyncza bez sprayu
+  regular_bulb_with_spray_year_count,    # Żarówka pojedyncza z użyciem sprayu
+  doubled_bulb_without_spray_year_count, # Żarówka podwójna bez sprayu
+  doubled_bulb_with_spray_year_count     # Żarówka podwójna z użyciem sprayu
+)
+
+# Etykiety
+bulb_labels <- c(
+  "Pojedyńcza żarówka bez spreyu",
+  "Pojedyńcza żarówka ze sprayem",
+  "Podwójna żarówka bez sprayu",
+  "Podwójna żarówka ze sprayem"
+)
+
+# Kolory
+bulb_colors <- c("#FF9999", "#9999FF", "#FFCC99", "#99CCFF")
+
+# Wykres słupkowy
+barplot(
+  height = life_years,
+  names.arg = bulb_labels,
+  col = bulb_colors,
+  main = "Długość życia żarówek w latach",
+  xlab = "",
+  ylab = "Średnia długość życia (lata)",
+  ylim = c(0, max(life_years) * 1.2),
+  las = 1,     # Pochylenie etykiet osi X
+  cex.names = 0.5 # Rozmiar czcionki etykiet
+)
+
+# Dodanie wartości na słupkach 
+text(
+  x = bar_positions,
+  y = life_years,
+  labels = round(life_years, 2), # Wyświetlenie wartości z 2 miejscami po przecinku
+  pos = 3, # Pozycja nad słupkami
+  cex = 0.8, # Rozmiar tekstu
+  col = "black"
+  )
+```
+
+Podwójne żarówki charakteryzują się znacznie dłuższą żywotnością. Żarówka podwójna bez sprayu wytrzymuje średnio 2.87 lat, a z sprayem 2.92 lata. To o około 45% dłużej niż w przypadku pojedynczych żarówek.
+
+Pojedyncze żarówki mają krótszą żywotność – pojedyncza żarówka bez sprayu wytrzymuje średnio 1.98 roku, a ze sprayem 2.23 lata. Różnica między tymi dwoma wariantami wynosi około 12.6%.
+
+#### Wnioski
+
+Jeżeli głównym kryterium jest koszt użytkowania na godzinę, to pojedyncza żarówka bez sprayu jest najlepszym wyborem.
+
+Jeśli zależy nam na dłuższej żywotności, to korzystniejsze są podwójne żarówki, mimo wyższego kosztu użytkowania na godzinę.
+
+Ostateczny wybór zależy od tego, czy priorytetem są niższe koszty operacyjne (wtedy pojedyncza żarówka bez sprayu) czy rzadsza wymiana żarówek (wtedy podwójne żarówki).
+
+### **Propozycja zmian, dzięki którym wzrośnie użyteczność oraz ekonomiczny sens stosowania sprayu**
+
+Na początku sprawdzamy na ile czasu starczy jedno opakowanie sprayu.
+
+Założyliśmy że typowe gospodarstwo domowe posiada 10 żarówek i każda z żarówek świeci średnio 4h dziennie.
+
+```{r}
+bulb_count_in_house <- 10;
+bulb_light_per_day <- 4;
+```
+
+Aby obliczyć wydajność sprayu należy:
+
+- podzielić łączny czas działania wszystkich żarówek ze sprayem przez średni czas świecenia żarówek oraz ilość żarówek w gospodarstwie
+- podzielić uzyskaną liczbę dni przez liczbę dni w roku
+
+```{r}
+# total_time_spray - zmienna przechowująca łączny czas działania żarówek ze sprayem
+# day_numer_in_years - zmienna przechowująca wartość liczby dni w roku
+spray_count_day <- total_time_spray / bulb_light_per_day / bulb_count_in_house;
+spray_count_years <- spray_count_day / day_number_in_year;
+
+print(spray_count_day)
+print(spray_count_years)
+```
+
+**Jedno opakowanie sprayu starcza na ok. 51lat**
+
+##### Zalecenia:
+
+1.**Zmniejszenie pojemności sprayu** - aktualnie butelka sprayu starcza na 51 lat, co ekonomicznie nie jest najlepsze dla firmy. Jeżeli zmniejszymy pojemność oraz jednocześnie cenę to będzie to bardziej atrakcyjne dla użytkownika (prościej jest wydać np. 20zł za dodatkowy spray niż 100zł) jak i bardziej opłacalne dla firmy.
+
+2.**Wydłużenie czasu działnia pojedynczego użycia** - aktualnie dla przeciętnego gospodarstwa domowego, użytkownik musi korzystać ze sprayu ok. 40 razy dziennie (zakładając że mamy 10 żarówek i każda świeci po 4h) - fizycznie jest to bardzo ciężko wykonalne, więc użyteczność sprayu spada. Dodatkowo, aby użyć sprayu trzeba poczekać, aż żarówka wystygnie co również wydłuża czas jaki musimy poświecić na tą czynność. Proponujemy, aby producent dopracował spray w taki sposób, żeby użytkownik musiał używać sprayu jak najrzadziej maksimum raz w tygodniu - inaczej wielu użytkowników będzie rezygnowało z produktu.
+
+3.**Lepsze działanie sprayu na podwójną żarówkę** - aktualnie różnice w żywotności jak i cenie żarówek z podwójną bańką ze sprayem i bez sprayu jest na tyle marginalna, że użytkownikowi nie opłaca się dodatkowo poświecać czasu na używanie sprayu. Proponujemy, aby producent dopracował formułę sprayu w taki sposób, aby miał on znaczący wpływ albo na cenę godziny użytkowwnia albo na wydłużony czas pracy żarówki.
 
