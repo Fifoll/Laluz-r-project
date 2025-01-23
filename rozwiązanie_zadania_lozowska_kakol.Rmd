@@ -33,7 +33,7 @@ head(data)
 - ważne jest ustawienie separatora podczas odczytu pliku na średnik korzystając z argumentu ```sep = ";"```
 - dane z pliku przypisaliśmy do zmiennej ```data```
 - ```data <- data[, -5]```usuwamy nieistotną kolumnę "manufacture_plant" w której znajdują dane dotyczące fabryk w których zostały wyprodukowane żarówki
-- ```data <- na.omit(data)``` - usuwamy wszystkie wiersze w których są puste wartości
+- ```data <- na.omit(data)``` - usuwamy wszystkie wiersze w których są puste wartości. Usunięto tylko ostatni wiersz zaiwerający cenę sprayu
 
 #### Charakterystyka danych
 Korzystając z poniższych funkcji pomocniczych przygotowaliśmy krótki wgląd do podstawowych informacji o danych (w komentarzach znajdują się detaliczne informacje o każdej funkcji)
@@ -94,6 +94,8 @@ ggplot(data, aes(x = time_in_hours, y = price_in_PLN, color = product_type, shap
   )
 ```
 
+Na wykresie zauważyliśmy odstające dane, więc postanowiliśmy je zbadać.
+
 #### Analiza danych odstających
 
 Do identyfikacji wartości odstających wykorzystano wskaźnik z-score, który określa, jak bardzo dana wartość odbiega od średniej, wyrażając tę różnicę w jednostkach odchylenia standardowego. Wartości uznano za odstające, jeśli ich z-score przekracza 3 jednostki w górę lub w dół od zera. Użyte funkcje operują na ramce danych „dane” i zwracają indeksy wierszy, które zawierają takie odstające wartości.
@@ -114,7 +116,7 @@ Przyjęto, że wartości odstające znajdują się w wierszach: 288 (31869.6 h),
 
 Są to wartości znacząco odbiegające od normy czasu działania żarówek, więc podjęlismy decyzję o usunięciu tych danych.
 
-Podjęto decyzję o usunięciu danych, gdyż zaburzają wyniki analizy:
+Podjęto decyzję o usunięciu danych, ponieważ uważamy że dane zostały źle wprowadzone - żarówka nie może świecić tak długo.
 
 ```{r}
 outliner_data <- c(outlier_time_in_hours, outlier_price_in_pln)
@@ -126,16 +128,8 @@ data <- subset(data, !(1:nrow(data) %in% outliner_data))
 
 ### **Test 1 - Czy rzeczywiście żarówki o podwójnej bańce mają dłuższy średni czas życia niż żarówki o pojedynczej bańce?**
 
-Do przeprowadzonego testu wykorzystaliśmy jedynie dane dotyczące żarówek na których nie użyto dodatkowego spraya, żeby wynik był bardziej wiarygodny.
+W pierwszej kolejności obliczyliśmy średni czas życia żarówki o pojedynczej bańce bez spraya oraz żarówki o podwójnej bańce bez spraya.
 
-#### Hipotezy
-
-- **hipoteza zerowa - Żarówki o podwójnej bańce nie mają dłuższego średniego czasu życia niż żarówki o pojedynczej bańce.**
-- **hipoteza alternatywna - Żarówki o podwójnej bańce mają dłuższy średni czas życia niż żarówki o pojedynczej bańce.**
-
-#### Wykonanie
-
-Aby wybrać odpowiedni test statystyczny do odpowiedzi na ww. pytanie należało sprawdzić czy próby danych posiadają rozkład normalny, aby to sprawdzić użyliśmy testu Shapiro-Wilka:
 ```{r}
 # W pierszej kolejności należało wyfiltrować odpowiednio dane na potrzeby testu
 # Pierwsza zmienna przechowuje dane żarówek regularnych bez użytego spraya
@@ -144,31 +138,6 @@ Aby wybrać odpowiedni test statystyczny do odpowiedzi na ww. pytanie należało
 regular_bulb_without_spray_filtered_data <- subset(data, product_type == "regular bulb" & sprayed == "none")
 doubled_bulb_without_spray_filtered_data <- subset(data, product_type == "DoubleBulb" & sprayed == "none")
 
-# Następnie wykonaliśmy testy
-shapiro_test_regular_bulb_without_spray <- shapiro.test(regular_bulb_without_spray_filtered_data$time_in_hours)
-shapiro_test_doubled_bulb_without_spray <- shapiro.test(doubled_bulb_without_spray_filtered_data$time_in_hours)
-
-print(shapiro_test_regular_bulb_without_spray)
-print(shapiro_test_doubled_bulb_without_spray)
-```
-Zgodnie z otrzymanymi wartościami można stwierdzić, że dane w zmiennej ```regular_bulb__without_spray_filtered_data$time_in_hours``` można uznać za zgodne z rozkładem normalnym, a dane w zmiennej ```doubled_bulb__without_spray_filtered_data$time_in_hours``` nie można uznać za zgodnych z rozkładem normalnym - w związku z tym do dalszej analizy należy rozważyć metody niewymagające normalności. W naszym przypadku będzie to test Wilcoxa.
-
-```{r}
-wilcox_regular_bulb_without_spray <- wilcox.test(regular_bulb_without_spray_filtered_data$time_in_hours, 
-                                   doubled_bulb_without_spray_filtered_data$time_in_hours)
-
-# Wyświetlanie wyników testu
-print(wilcox_regular_bulb_without_spray)
-```
-
-#### Wyniki testu:
-
-Bardzo niska wartość p-value wskazuje, że odrzucamy hipotezę zerową i wybieramy hipotezę alternatywną, która mówi że żarówki o podwójnej bańce mają dłuższy średni czas życia niż żarówki o pojedynczej bańce.
-
-
-Aby sprawdzić, która z grup danych posiada większą średnią wykorzystaliśmy poniższy kod:
-
-```{r}
 regular_bulb_without_spray_mean_time <- mean(regular_bulb_without_spray_filtered_data$time_in_hours, na.rm = TRUE) #na.rm = TRUE - usuwa puste wartości
 doubled_bulb_without_spray_mean_time <- mean(doubled_bulb_without_spray_filtered_data$time_in_hours, na.rm = TRUE)
 print(regular_bulb_without_spray_mean_time)
@@ -210,16 +179,90 @@ points(
 )
 ```
 
-#### **Wniosek:**
+W związku z tym, że średnia czasu świecenia żarówki z podwójną bańką jest większa niż z pojedynczą, zdecydowaliśy zbadać, czy ta różnica jest istotna statystycznie.
+
+Aby wybrać odpowiedni test statystyczny do odpowiedzi na ww. pytanie należało sprawdzić czy próby danych posiadają rozkład normalny, aby to sprawdzić użyliśmy testu Shapiro-Wilka.
+
+#### Hipotezy
+
+- **hipoteza zerowa - Dane pochodzą z rozkładu normalnego**
+- **hipoteza alternatywna - Dane nie pochodzą z rozkładu normalnego**
+
+#### Wykonanie
+
+```{r}
+
+# Następnie wykonaliśmy testy
+shapiro_test_regular_bulb_without_spray <- shapiro.test(regular_bulb_without_spray_filtered_data$time_in_hours)
+shapiro_test_doubled_bulb_without_spray <- shapiro.test(doubled_bulb_without_spray_filtered_data$time_in_hours)
+
+print(shapiro_test_regular_bulb_without_spray)
+print(shapiro_test_doubled_bulb_without_spray)
+```
+#### Wniosek
+
+Zgodnie z otrzymanymi danymi, dla żarówek o pojedynczej bańce nie można odrzucić hipotezy zerowej. Dla żarówek z podwójną bańką odrzucamy hipotezę zerową, co oznacza że dane nie mają rozkładu normalnego.
+
+Jeżeli jeden zestaw danych nie można uznać za zgodnych z rozkładem normalnym, musimy do dalszej analizy należy rozważyć metody niewymagające normalności. W naszym przypadku będzie to test Wilcoxa
+
+#### Hipotezy
+
+- **hipoteza zerowa - Żarówki o podwójnej bańce nie mają dłuższego średniego czasu życia niż żarówki o pojedynczej bańce.**
+- **hipoteza alternatywna - Żarówki o podwójnej bańce mają dłuższy średni czas życia niż żarówki o pojedynczej bańce.**
+
+```{r}
+wilcox_regular_bulb_without_spray <- wilcox.test(
+  doubled_bulb_without_spray_filtered_data$time_in_hours,
+  regular_bulb_without_spray_filtered_data$time_in_hours, 
+  alternative = "greater"
+)
+
+# Wyświetlanie wyników testu
+print(wilcox_regular_bulb_without_spray)
+```
+
+#### Wniosek
+
+Bardzo niska wartość p-value wskazuje, że odrzucamy hipotezę zerową i wybieramy hipotezę alternatywną, która mówi że żarówki o podwójnej bańce mają dłuższy średni czas życia niż żarówki o pojedynczej bańce i jest to istotne statystycznie.
+
+
+
+#### **Podsumowanie:**
 **Żarówki o podwójnej bańce mają dłuższy średni czas działania niż żarówki o pojedynczej bańce.**
 
 ### **Test 2 - Czy rzeczywiście spray przedłuża średni czas życia żarówki? Obu typów?**
 
-#### Badania rozkładu normalnego danych
+Na początku obliczyliśmy średni czas działania żarówki z podwójną bańką z użyciem spraya oraz z pojedynczą bańką z użyciem spraya i porównaliśmy je z wynikami dla tych samych żarówek ale bez użycia dodatkowego sprayu.
 
 ```{r}
 regular_bulb_with_spray_filtered_data <- subset(data, product_type == "regular bulb" & sprayed == "CoatItYourself")
 doubled_bulb_with_spray_filtered_data <- subset(data, product_type == "DoubleBulb" & sprayed == "CoatItYourself")
+
+regular_bulb_with_spray_mean_time <- mean(regular_bulb_with_spray_filtered_data$time_in_hours, na.rm = TRUE) #na.rm = TRUE - usuwa puste wartości
+doubled_bulb_with_spray_mean_time <- mean(doubled_bulb_with_spray_filtered_data$time_in_hours, na.rm = TRUE)
+
+# średnia czasu dla żarówki regularnej ze sprayem
+print(regular_bulb_with_spray_mean_time)
+# średnia czasu dla żarówki regularnej bez spraya
+print(regular_bulb_without_spray_mean_time)
+# średnia czasu dla żarówki podwójnej ze sprayem
+print(doubled_bulb_with_spray_mean_time)
+# średnia czasu dla żarówki podwójnej bez spraya
+print(doubled_bulb_without_spray_mean_time)
+```
+
+Zauważyliśmy, że w obu przypadkach średnia czasu działania żarówki ze sprayem jest większa niż w żarówkach bez sprayu, więc zdecydowaliśmy, że sprawdzimy czy te różnice są statystycznie istotne.
+
+Aby wybrać odpowiedni test statystyczny do odpowiedzi na ww. pytanie należało sprawdzić czy próby danych posiadają rozkład normalny, aby to sprawdzić użyliśmy testu Shapiro-Wilka.
+
+##### Hipotezy
+
+- **hipoteza zerowa - Dane pochodzą z rozkładu normalnego**
+- **hipoteza alternatywna - Dane nie pochodzą z rozkładu normalnego**
+
+##### Badanie rozkładu normalnego danych
+
+```{r}
 
 shapiro_test_regular_bulb_with_spray <- shapiro.test(regular_bulb_with_spray_filtered_data$time_in_hours)
 shapiro_test_doubled_bulb_with_spray <- shapiro.test(doubled_bulb_with_spray_filtered_data$time_in_hours)
@@ -228,6 +271,8 @@ print(shapiro_test_doubled_bulb_with_spray)
 print(shapiro_test_regular_bulb_without_spray)
 print(shapiro_test_doubled_bulb_without_spray)
 ```
+
+##### Wniosek:
 Ponieważ dane nie mają rozkładu normalnego (tj. p-value grup: żarówki z pojedynczą bańką ze sprayem oraz żarówki z podwójną bańką są mniejsze niż wartość 0.05) do dalszej analizy wykorzystaliśmy test wilcoxa, który porównuje mediany oby zbiorów.
 
 
@@ -237,12 +282,15 @@ Ponieważ dane nie mają rozkładu normalnego (tj. p-value grup: żarówki z poj
 - **hipoteza zerowa - Spray nie ma wpływu na średni czas życia żarówki z pojedynczą bańką**
 - **hipoteza alternatywna -  Spray ma wpływ na średni czas życia żarówki z pojedynczą bańką**
 
+##### Badanie:
 ```{r}
-wilcox_regular_bulb <- wilcox.test(regular_bulb_without_spray_filtered_data$time_in_hours, regular_bulb_with_spray_filtered_data$time_in_hours)
+wilcox_regular_bulb <- wilcox.test(regular_bulb_with_spray_filtered_data$time_in_hours, regular_bulb_without_spray_filtered_data$time_in_hours, alternative = "greater")
 print(wilcox_regular_bulb)
 ```
-W związku z tym, że p-value jest mniejsze niż 0.05 to przyjmujemy hipotezę alternatywną, że spray ma wpływ na czas życia żarówki z pojedynczą bańką.
 
+##### Wniosek:
+
+W związku z tym, że p-value jest mniejsze niż 0.05 to przyjmujemy hipotezę alternatywną, że spray ma wpływ na czas życia żarówki z pojedynczą bańką.
 
 #### Żarówka z podwójną bańką
 
@@ -250,11 +298,17 @@ W związku z tym, że p-value jest mniejsze niż 0.05 to przyjmujemy hipotezę a
 - **hipoteza zerowa - Spray nie ma wpływu na średni czas życia żarówki z podwójną bańką**
 - **hipoteza alternatywna -  Spray ma wpływ na średni czas życia żarówki z podwójną bańką**
 
+##### Badanie:
 ```{r}
-wilcox_doubled_bulb <- wilcox.test(doubled_bulb_without_spray_filtered_data$time_in_hours, doubled_bulb_with_spray_filtered_data$time_in_hours)
+wilcox_doubled_bulb <- wilcox.test(doubled_bulb_with_spray_filtered_data$time_in_hours, doubled_bulb_without_spray_filtered_data$time_in_hours, alternative = "greater")
 print(wilcox_doubled_bulb)
 ```
+
+##### Wniosek:
 W związku z tym, że p-value jest większe niż 0.05 to przyjmujemy hipotezę zerową, że spray nie ma wpływu na czas życia żarówki z podwójną bańką.
+
+#### Podsumowanie:
+**Spray ma wpływ jedynie na żarówki z pojedynczą bańką.**
 
 
 ### **Test 3 - Czy używanie którejś z tych alternatyw do zwykłych żarówek o pojedynczej bańce ma sens ekonomiczny?**
@@ -447,7 +501,7 @@ bulb_labels <- c(
 bulb_colors <- c("#FF9999", "#9999FF", "#FFCC99", "#99CCFF")
 
 # Wykres słupkowy
-barplot(
+time_barplot <- barplot(
   height = life_years,
   names.arg = bulb_labels,
   col = bulb_colors,
@@ -464,10 +518,35 @@ text(
   x = bar_positions,
   y = life_years,
   labels = round(life_years, 2), # Wyświetlenie wartości z 2 miejscami po przecinku
-  pos = 3, # Pozycja nad słupkami
+  pos = 2,
   cex = 0.8, # Rozmiar tekstu
   col = "black"
   )
+
+points(
+  jitter(rep(time_barplot[1], length(regular_bulb_without_spray_filtered_data$time_in_hour))),
+  regular_bulb_without_spray_filtered_data$time_in_hour / light_hours_per_day / day_number_in_year, # Zamiana godzin na lata
+  col = "red",
+  pch = 16
+)
+points(
+  jitter(rep(time_barplot[2], length(regular_bulb_with_spray_filtered_data$time_in_hour))),
+  regular_bulb_with_spray_filtered_data$time_in_hour / light_hours_per_day / day_number_in_year, # Zamiana godzin na lata
+  col = "red",
+  pch = 16
+)
+points(
+  jitter(rep(time_barplot[3], length(doubled_bulb_without_spray_filtered_data$time_in_hour))),
+  doubled_bulb_without_spray_filtered_data$time_in_hour / light_hours_per_day / day_number_in_year, # Zamiana godzin na lata
+  col = "red",
+  pch = 16
+)
+points(
+  jitter(rep(time_barplot[4], length(doubled_bulb_with_spray_filtered_data$time_in_hour))),
+  doubled_bulb_without_spray_filtered_data$time_in_hour / light_hours_per_day / day_number_in_year, # Zamiana godzin na lata
+  col = "red",
+  pch = 16
+)
 ```
 
 Podwójne żarówki charakteryzują się znacznie dłuższą żywotnością. Żarówka podwójna bez sprayu wytrzymuje średnio 2.87 lat, a z sprayem 2.92 lata. To o około 45% dłużej niż w przypadku pojedynczych żarówek.
